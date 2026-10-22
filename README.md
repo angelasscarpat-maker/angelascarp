@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Abra **http://localhost:3000/login** e clique em **Explorar demonstração**. Nenhuma conta ou chave é necessária para a demonstração. O dashboard redireciona para o login quando não há sessão.
+Abra **http://localhost:3000**. Sem variáveis Supabase, o dashboard abre diretamente em modo demonstrativo. A página `/login` também permite explorar a demonstração. Nenhuma conta ou chave é necessária. Com Supabase configurado, o acesso requer sessão ou entrada explícita em demonstração.
 
 ```sh
 npm run typecheck
@@ -57,10 +57,38 @@ supabase/migrations/         Evolução versionada do banco
 
 Adicione novos módulos em `src/features/<modulo>`, extraia consultas para serviços próprios e mantenha os dados demonstrativos separados. O cadastro completo de clientes, funil de vendas, calendário, financeiro com parcelas e fluxo de produção serão etapas posteriores.
 
-## Publicar
+## Publicar na Vercel sem instalar nada no Mac
 
-Em hospedagem compatível com Next.js (por exemplo Vercel), importe o repositório, configure as mesmas variáveis públicas e utilize o comando de build `npm run build`. Nenhuma credencial Supabase é incluída no repositório.
+1. Acesse https://vercel.com/new e entre com sua conta GitHub.
+2. Autorize o acesso ao repositório `angelasscarpat-maker/angelascarp` e clique em **Import**.
+3. Selecione a branch **Principal**, com estes arquivos já presentes no GitHub.
+4. Mantenha **Framework Preset: Next.js** e **Root Directory: .** (raiz). Use Node.js 22.x ou 24.x.
+5. Mantenha **Build Command: npm run build**, **Install Command: npm ci** e o diretório de saída padrão do Next.js. O `package-lock.json` está versionado.
+6. Deixe as variáveis de ambiente vazias. Supabase não é necessário.
+7. Clique em **Deploy**. Ao concluir, clique em **Visit** para abrir a URL HTTPS fornecida pela Vercel no Safari.
+8. Faça alterações futuras na branch de produção para gerar novos deploys automaticamente. A branch de produção pode ser conferida nas configurações Git do projeto Vercel.
 
-## Verificação neste ambiente
+O endereço `localhost:3000` só funciona na máquina onde o servidor está executando. O ambiente remoto do Codex precisa de encaminhamento de portas para oferecer uma prévia ao seu Mac; nesta sessão não há uma ferramenta de encaminhamento disponível. A Vercel fornece uma URL acessível sem instalações locais.
 
-A instalação foi tentada, mas o proxy de rede do ambiente não estava acessível (`Could not connect to proxy port 8080`). Por isso ainda não foi possível executar TypeScript, build ou teste no navegador. Execute os comandos de verificação acima assim que as dependências estiverem disponíveis.
+A demonstração usa dados fictícios. Cadastros e tarefas são salvos apenas no navegador. O login Supabase continua opcional e não deve ser configurado para este teste.
+
+## Verificação no ambiente Codex
+
+O erro inicial de conexão com `proxy:8080` foi resolvido executando a instalação com a permissão de rede do ambiente. Um segundo erro de cache foi resolvido direcionando o npm para uma pasta gravável:
+
+```sh
+npm ci --cache /workspace/work/npm-cache
+```
+
+O comando também precisa do acesso à rede habilitado no executor Codex. Não é necessário alterar o proxy, desativar TLS ou mudar configurações no Mac.
+
+### Resultado das verificações
+
+- Instalação concluída com permissão de rede e cache gravável.
+- `npm run typecheck` e `npm run build`: passaram (Next.js 15.5.28).
+- `npm audit`: 0 vulnerabilidades após atualização de PostCSS via override.
+- Servidor de produção iniciado na porta 3000 com permissão de rede.
+- HTTP: `/` e `/login` retornaram 200; rota inexistente retornou 404.
+- Não houve teste visual/interativo no navegador. HTTP não comprova interações após hidratação.
+
+O envio à branch `Principal` depende de aprovação: a revisão automática do ambiente bloqueou o push à branch padrão. Antes de importar na Vercel, confirme que os arquivos de aplicação estão nessa branch; o repositório remoto ainda pode conter apenas o README inicial.
